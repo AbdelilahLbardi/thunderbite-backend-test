@@ -20,7 +20,7 @@ class Game extends Model implements GameContract
         'revealed_tiles' => 'json'
     ];
 
-    public static function filter(?string $account = null, ?int $prizeId = null, ?string $fromDate = null, ?string $tillDate = null, ?int $campaignId = null): Builder
+    public static function filter(?string $account = null, int|string|null $prizeId = null, ?string $fromDate = null, ?string $tillDate = null, ?int $campaignId = null): Builder
     {
         /** @var Campaign $campaign */
         $campaign = Campaign::query()->select('timezone')->find($campaignId);

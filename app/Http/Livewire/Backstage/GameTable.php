@@ -38,13 +38,13 @@ class GameTable extends TableComponent
 
     public $extraFilters = 'games-filters';
 
-    public $prizeId = null;
+    public int|string|null $prizeId = null;
 
-    public $account = null;
+    public ?string $account = null;
 
-    public $startDate = null;
+    public ?string $startDate = null;
 
-    public $endDate = null;
+    public ?string $endDate = null;
 
     public function export(): StreamedResponse
     {
