@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Actions\Games\CheckGameCompletion;
 use App\Models\Campaign;
+use App\Models\Game;
 use Database\Factories\CampaignFactory;
 use Database\Factories\PrizeFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -65,6 +66,65 @@ class GameTest extends TestCase
             ->assertViewHas('config', json_encode([
                 'message' => trans('prize.daily_volume_exceeded', ['hours' => 22, 'minutes' => 30])
             ]));
+    }
+
+    public function test_game_can_be_played()
+    {
+        $this->assertDatabaseCount('games', 0);
+
+        $prize = PrizeFactory::new()
+            ->campaign($this->campaign)
+            ->create([
+                'tile_image' => 'fake_tile_image.png',
+                'daily_volume' => 100
+            ]);
+
+        $this->mockRandomPrizeAction();
+
+        $response = $this->loadCampaignEndpoint($this->campaign->slug, 'test-account');
+
+        $game = Game::query()->first();
+
+        $response->assertViewIs('frontend.index')
+            ->assertViewHas('config', json_encode([
+                'apiPath' => $endpoint = '/api/flip',
+                'gameId' => $game->id,
+                'reveledTiles' => [],
+                'message' => null
+            ]));
+
+        $this->assertFalse(cache()->offsetExists($prize->getCacheKey()));
+
+        $this->flipTile($endpoint, $game->id, rand(0, 24));
+        $this->assertNull($game->fresh()->revealed_at);
+        $this->assertSame(1, cache($prize->getCacheKey()));
+
+        $this->flipTile($endpoint, $game->id, rand(0, 24));
+        $this->assertNull($game->fresh()->revealed_at);
+        $this->assertSame(2, cache($prize->getCacheKey()));
+
+        //Checking if the homepage returns progress
+
+        $this->loadCampaignEndpoint($this->campaign->slug, 'test-account')
+            ->assertViewHas('config', json_encode([
+                'apiPath' => '/api/flip',
+                'gameId' => $game->id,
+                'reveledTiles' => $game->fresh()->revealed_tiles,
+                'message' => null
+            ]));
+
+        $this->flipTile($endpoint, $game->id, rand(0, 24))
+            ->assertExactJson([
+                'tileImage' => $prize->tile_image,
+                'message' => trans('prize.default_win_message')
+            ]);
+        $this->assertNotNull($game->fresh()->revealed_at);
+        $this->assertSame(3, cache($prize->getCacheKey()));
+    }
+
+    private function flipTile(string $endpoint, int $gameId, int $tileIndex): TestResponse
+    {
+        return $this->post($endpoint, compact('gameId', 'tileIndex'));
     }
 
     private function loadCampaignEndpoint(string $campaignSlug, string $a, string $segment = 'low'): TestResponse
