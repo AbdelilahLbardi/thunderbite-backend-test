@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\Games\CheckGameCompletion;
 use App\Actions\Prizes\CheckDailyVolume;
 use App\Http\Controllers\Controller;
 use App\Models\Game;
+use Carbon\Carbon;
 
 class ApiController extends Controller
 {
-    public function flip(CheckDailyVolume $checkDailyVolume)
+    public function flip(CheckDailyVolume $checkDailyVolume, CheckGameCompletion $gameCompletion)
     {
         $data = request()->validate([
             'gameId' => 'required',
@@ -17,11 +19,13 @@ class ApiController extends Controller
 
         /** @var Game $game */
         $game = Game::query()
+            ->with('campaign:id,timezone')
             ->with('prize:id,tile_image,daily_volume')
-            ->select('id', 'prize_id', 'revealed_tiles')
+            ->select('id', 'campaign_id', 'prize_id', 'revealed_tiles')
             ->findOrFail($data['gameId']);
 
         $prize = $game->prize;
+        $campaign = $game->campaign;
 
         if (! empty($prize->daily_volume)) {
 
@@ -41,14 +45,19 @@ class ApiController extends Controller
             'image' => $prize->tile_image
         ];
 
-        $game->update([
-            'revealed_tiles' => $revealedTiles
-        ]);
+        $game->revealed_tiles = $revealedTiles;
 
-        $currentMove = count($revealedTiles);
+        $gameCompletion = $gameCompletion->execute($revealedTiles);
+
+        if ($gameCompletion->isComplete()) {
+            $game->revealed_at = Carbon::now()->setTimezone($campaign->timezone)->format('d-m-Y H:i:s');
+        }
+
+        $game->save();
 
         return [
             'tileImage' => $prize->tile_image,
-        ] + ($currentMove >= 3 ? ['message' => $prize->description ?? trans('prize.default_win_message')] : []);
+            'message' => $gameCompletion->message()
+        ];
     }
 }
