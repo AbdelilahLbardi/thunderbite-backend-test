@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Actions\Games\ConvertsTimestampToTimezone;
 use App\Contracts\Models\GameContract;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,12 +22,29 @@ class Game extends Model implements GameContract
 
     public static function filter(?string $account = null, ?int $prizeId = null, ?string $fromDate = null, ?string $tillDate = null, ?int $campaignId = null): Builder
     {
-        $query = self::query();
-        $campaign = Campaign::query()->find($campaignId);
+        /** @var Campaign $campaign */
+        $campaign = Campaign::query()->select('timezone')->find($campaignId);
 
-        // When filtering by dates, keep in mind `revealed_at` should be stored in Campaign timezone
+        /** @var ConvertsTimestampToTimezone $timezoneConverter */
+        $timezoneConverter = resolve(ConvertsTimestampToTimezone::class);
 
-        return $query;
+        return self::query()
+            ->when(
+                $account,
+                fn (Builder $q, $account) => $q->whereRaw("account LIKE ?", ["%{$account}%"])
+            )
+            ->when(
+                $prizeId,
+                fn (Builder $q, $prizeId) => $q->where('prize_id', '=', $prizeId)
+            )
+            ->when(
+                $fromDate,
+                fn (Builder $q, $fromDate) => $q->where('revealed_at', '>=', $timezoneConverter->execute($fromDate, $campaign->timezone))
+            )
+            ->when(
+                $tillDate,
+                fn (Builder $q, $tillDate) => $q->where('revealed_at', '<=', $timezoneConverter->execute($tillDate, $campaign->timezone))
+            );
     }
 
     public function campaign(): BelongsTo
