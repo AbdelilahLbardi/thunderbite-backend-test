@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Backstage;
 
 use App\Models\Game;
+use Illuminate\Database\Eloquent\Collection;
 
 class GameTable extends TableComponent
 {
@@ -33,12 +34,6 @@ class GameTable extends TableComponent
             [
                 'title' => 'prize_id',
                 'attribute' => 'prize_id',
-                'sort' => true,
-            ],
-
-            [
-                'title' => 'title',
-                'attribute' => 'title',
                 'sort' => true,
             ],
 
