@@ -12,7 +12,7 @@ class ApiController extends Controller
     {
         $data = request()->validate([
             'gameId' => 'required',
-            'tileIndex' => 'required|number|min:0|max:24'
+            'tileIndex' => 'required|integer|min:0|max:24'
         ]);
 
         /** @var Game $game */
