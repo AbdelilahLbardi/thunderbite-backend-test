@@ -1,125 +1,109 @@
 <?php
 
-namespace Tests\Unit\Game;
-
-
 use App\Actions\Games\FindUnfinishedGameOrInitiateOne;
-use App\Models\Campaign;
-use App\Models\Prize;
 use Database\Factories\CampaignFactory;
 use Database\Factories\GameFactory;
 use Database\Factories\PrizeFactory;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use Tests\Traits\Mocks;
+use function Pest\Laravel\assertDatabaseCount;
 
-class GameCreationTest extends TestCase
-{
-    use RefreshDatabase, Mocks;
+beforeEach(function () {
+    $this->findUnfinishedGameOrInitiateOne = resolve(FindUnfinishedGameOrInitiateOne::class);
 
-    protected FindUnfinishedGameOrInitiateOne $findUnfinishedGameOrInitiateOne;
-    protected Campaign $campaign;
-    protected Prize $prize;
+    $this->campaign = CampaignFactory::new()->create();
+    $this->prize = PrizeFactory::new()
+        ->campaign($this->campaign)
+        ->highSegment()
+        ->create();
+});
 
-    protected function setUp():void
-    {
-        parent::setUp();
+test('new account game is created when no previous one exists', function () {
 
-        $this->findUnfinishedGameOrInitiateOne = resolve(FindUnfinishedGameOrInitiateOne::class);
+    assertDatabaseCount('games', 0);
 
-        $this->campaign = CampaignFactory::new()->create();
-        $this->prize = PrizeFactory::new()
-            ->campaign($this->campaign)
-            ->highSegment()
-            ->create();
-    }
+    $this->mockRandomPrizeAction();
 
-    public function test_new_account_game_is_created_when_no_previous_one_exists(): void
-    {
-        $this->assertDatabaseCount('games', 0);
+    resolve(FindUnfinishedGameOrInitiateOne::class)->execute('test-account', $this->campaign->id, 'high');
 
-        $this->mockRandomPrizeAction();
+    assertDatabaseCount('games', 1);
 
-        resolve(FindUnfinishedGameOrInitiateOne::class)->execute('test-account', $this->campaign->id, 'high');
+});
 
-        $this->assertDatabaseCount('games', 1);
-    }
+test('old account game is retrieved when it is not revealed', function () {
 
-    public function test_old_account_game_is_retrieved_when_it_is_not_revealed(): void
-    {
-        GameFactory::new()
-            ->campaign($this->campaign)
-            ->prize($this->prize)
-            ->unrevealed()
-            ->create([
-                'account' => 'test-account'
-            ]);
+    GameFactory::new()
+        ->campaign($this->campaign)
+        ->prize($this->prize)
+        ->unrevealed()
+        ->create([
+            'account' => 'test-account'
+        ]);
 
-        $this->assertDatabaseCount('games', 1);
+    $this->assertDatabaseCount('games', 1);
 
-        $this->findUnfinishedGameOrInitiateOne->execute('test-account', $this->campaign->id, 'high');
+    $this->findUnfinishedGameOrInitiateOne->execute('test-account', $this->campaign->id, 'high');
 
-        $this->assertDatabaseCount('games', 1);
-    }
+    $this->assertDatabaseCount('games', 1);
 
-    public function test_new_account_game_created_when_previous_one_is_revealed(): void
-    {
-        GameFactory::new()->create();
+});
 
-        $this->assertDatabaseCount('games', 1);
+test('new account game created when previous one is revealed', function () {
 
-        $this->mockRandomPrizeAction();
+    GameFactory::new()->create();
 
-        resolve(FindUnfinishedGameOrInitiateOne::class)->execute('test-account', $this->campaign->id, 'high');
+    $this->assertDatabaseCount('games', 1);
 
-        $this->assertDatabaseCount('games', 2);
-    }
+    $this->mockRandomPrizeAction();
 
-    public function test_new_game_is_created_when_the_existing_account_game_prize_level_is_different(): void
-    {
-        $this->assertDatabaseCount('prizes', 1);
+    resolve(FindUnfinishedGameOrInitiateOne::class)->execute('test-account', $this->campaign->id, 'high');
 
-        GameFactory::new()
-            ->prize(
-                PrizeFactory::new()
-                    ->campaign($this->campaign)
-                    ->lowSegment()
-                    ->create()
-            )
-            ->create();
+    $this->assertDatabaseCount('games', 2);
 
-        $this->assertDatabaseCount('prizes', 2);
+});
 
-        $this->assertDatabaseCount('games', 1);
+test('new game is created when the existing account game prize level is different', function () {
 
-        $this->mockRandomPrizeAction();
+    $this->assertDatabaseCount('prizes', 1);
 
-        resolve(FindUnfinishedGameOrInitiateOne::class)->execute('test-account', $this->campaign->id, 'high');
+    GameFactory::new()
+        ->prize(
+            PrizeFactory::new()
+                ->campaign($this->campaign)
+                ->lowSegment()
+                ->create()
+        )
+        ->create();
 
-        $this->assertDatabaseCount('games', 2);
-    }
+    $this->assertDatabaseCount('prizes', 2);
 
-    public function test_new_game_is_created_when_the_existing_account_game_prize_level_is_same_but_revealed(): void
-    {
-        $this->assertDatabaseCount('prizes', 1);
+    $this->assertDatabaseCount('games', 1);
 
-        GameFactory::new()
-            ->prize(
-                PrizeFactory::new()
-                    ->campaign($this->campaign)
-                    ->highSegment()
-                    ->create()
-            )
-            ->create();
+    $this->mockRandomPrizeAction();
 
-        $this->assertDatabaseCount('prizes', 2);
+    resolve(FindUnfinishedGameOrInitiateOne::class)->execute('test-account', $this->campaign->id, 'high');
 
-        $this->assertDatabaseCount('games', 1);
+    $this->assertDatabaseCount('games', 2);
 
-        $this->mockRandomPrizeAction();
+});
 
-        resolve(FindUnfinishedGameOrInitiateOne::class)->execute('test-account', $this->campaign->id, 'high');
+test('new game is created when the existing account game prize level is same but revealed', function () {
+    $this->assertDatabaseCount('prizes', 1);
 
-        $this->assertDatabaseCount('games', 2);
-    }
-}
+    GameFactory::new()
+        ->prize(
+            PrizeFactory::new()
+                ->campaign($this->campaign)
+                ->highSegment()
+                ->create()
+        )
+        ->create();
+
+    $this->assertDatabaseCount('prizes', 2);
+
+    $this->assertDatabaseCount('games', 1);
+
+    $this->mockRandomPrizeAction();
+
+    resolve(FindUnfinishedGameOrInitiateOne::class)->execute('test-account', $this->campaign->id, 'high');
+
+    $this->assertDatabaseCount('games', 2);
+});
