@@ -1,3 +1,15 @@
+# Video
+
+<div>
+<a href="https://www.loom.com/share/b9057ca731b44c52b25619960ae66c66">
+  <p>Thunderbite backend test - Watch Video</p>
+</a>
+<a href="https://www.loom.com/share/b9057ca731b44c52b25619960ae66c66">
+  <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/b9057ca731b44c52b25619960ae66c66-with-play.gif">
+</a>
+</div>
+
+
 # Thunderbite Backend Test
 
 This test is designed to test your laravel and algorithm knowledge, and it is a good representation of your core skills that are required to become a Thunderbite team member.
