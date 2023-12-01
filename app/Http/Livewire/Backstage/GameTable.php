@@ -4,8 +4,6 @@ namespace App\Http\Livewire\Backstage;
 
 use App\Models\Game;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class GameTable extends TableComponent
