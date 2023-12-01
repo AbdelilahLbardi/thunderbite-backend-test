@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Campaign\CheckIfCampaignTimeIsInvalid;
+use App\Actions\Games\CheckGameCompletion;
 use App\Actions\Games\FindUnfinishedGameOrInitiateOne;
 use App\Actions\Prizes\CheckDailyVolume;
 use App\Models\Campaign;
@@ -13,7 +14,8 @@ class FrontendController extends Controller
     public function __construct(
         public CheckIfCampaignTimeIsInvalid $campaignTimeIsInvalid,
         public FindUnfinishedGameOrInitiateOne $findUnfinishedGameOrInitiateOne,
-        public CheckDailyVolume $checkDailyVolume
+        public CheckDailyVolume $checkDailyVolume,
+        public CheckGameCompletion $checkGameCompletion
     ){}
 
     public function loadCampaign(Campaign $campaign): View
@@ -46,11 +48,13 @@ class FrontendController extends Controller
 
         $revealedTiles = $game->revealed_tiles ?? [];
 
+        $gameCompletion = $this->checkGameCompletion->execute($revealedTiles);
+
         $jsonConfig = [
             'apiPath' => '/api/flip',
             'gameId' => $game->id,
             'reveledTiles' => $revealedTiles,
-            'message' => count($revealedTiles) >= 3 ? trans('game.finished') : null
+            'message' => $gameCompletion->message()
         ];
 
         return view('frontend.index', ['config' => json_encode($jsonConfig)]);

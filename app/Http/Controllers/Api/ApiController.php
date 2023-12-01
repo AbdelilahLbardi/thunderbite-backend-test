@@ -36,6 +36,8 @@ class ApiController extends Controller
                     'message' => $dailyVolume->message()
                 ];
             }
+
+            $dailyVolume->increaseVolume();
         }
 
         $revealedTiles = $game->revealed_tiles ?? [];
