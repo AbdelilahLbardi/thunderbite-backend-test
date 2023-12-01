@@ -28,6 +28,12 @@ class GameTest extends TestCase
         $this->checkGameCompletion = resolve(CheckGameCompletion::class);
     }
 
+    public function test_account_is_required()
+    {
+        $this->loadCampaignEndpoint($this->campaign->slug, '')
+            ->assertSessionHasErrors('a');
+    }
+
     public function test_loading_campaign_with_invalid_time_returns_errors_message()
     {
         $this->campaign->update([
