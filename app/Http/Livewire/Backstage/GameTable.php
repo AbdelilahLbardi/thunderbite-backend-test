@@ -27,6 +27,13 @@ class GameTable extends TableComponent
         ],
     ];
 
+    public array $action = [
+        [
+            'label' => 'Export csv',
+            'method' => 'export'
+        ],
+    ];
+
     public $sortField = 'revealed_at';
 
     public $extraFilters = 'games-filters';
@@ -61,6 +68,7 @@ class GameTable extends TableComponent
 
         return view('livewire.backstage.table', [
             'columns' => $this->columns,
+            'actions' => $this->action,
             'resource' => 'games',
             'rows' => Game::filter($this->account, $this->prizeId, $this->startDate, $this->endDate, session('activeCampaign'))
                 ->orderBy($this->sortField, $this->sortDesc ? 'DESC' : 'ASC')
