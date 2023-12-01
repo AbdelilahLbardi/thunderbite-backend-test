@@ -1,3 +1,16 @@
+<div class="col-span-6 text-right pb-8">
+    <form method="POST" wire:submit.prevent="export">
+        <div class="grid grid-cols-4 gap-4 items-start pt-5">
+            <div class="col-start-2 col-span-3">
+                <button type="submit" class="submit-button">
+                    Export csv
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+
 <div class="flex justify-between pb-4 h-14">
     <h1 class="m-0 p-0">{{ ucfirst($resource) }}</h1>
     @if(isset($crmHeader))
