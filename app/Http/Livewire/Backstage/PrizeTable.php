@@ -17,12 +17,22 @@ class PrizeTable extends TableComponent
             ],
 
             [
+                'title' => 'tile_image',
+                'sort' => true,
+            ],
+
+            [
                 'title' => 'level',
                 'sort' => true,
             ],
 
             [
                 'title' => 'weight',
+                'sort' => true,
+            ],
+
+            [
+                'title' => 'daily_volume',
                 'sort' => true,
             ],
 

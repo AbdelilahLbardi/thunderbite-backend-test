@@ -11,7 +11,13 @@
 |
 */
 
-uses(Tests\TestCase::class)->in('Feature');
+use Illuminate\Testing\TestResponse;
+
+uses(
+    Tests\TestCase::class,
+    \Illuminate\Foundation\Testing\RefreshDatabase::class,
+    \Tests\Traits\Mocks::class
+)->in('Feature', 'Unit');
 
 /*
 |--------------------------------------------------------------------------
@@ -39,7 +45,14 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function loadCampaignEndpoint(string $campaignSlug, string $a, string $segment = 'low'): TestResponse
 {
-    // ..
+    return \Pest\Laravel\get(
+        $campaignSlug . '/?' . http_build_query(compact('a', 'segment'))
+    );
+}
+
+function flipTile(string $endpoint, int $gameId, int $tileIndex): TestResponse
+{
+    return \Pest\Laravel\post($endpoint, compact('gameId', 'tileIndex'));
 }

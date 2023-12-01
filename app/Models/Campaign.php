@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Contracts\Models\CampaignContract;
 use DateTimeZone;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
-class Campaign extends Model
+class Campaign extends Model implements CampaignContract
 {
     use HasSlug;
 
@@ -44,7 +46,7 @@ class Campaign extends Model
                 ->orWhere('ends_at', 'like', '%'.$query.'%');
     }
 
-    public function getAvailableTimezones()
+    public function getAvailableTimezones(): array
     {
         // Set empty value
         $return[null] = '';
@@ -56,5 +58,15 @@ class Campaign extends Model
 
         // Return
         return $return;
+    }
+
+    public function games(): HasMany
+    {
+        return $this->hasMany(Game::class);
+    }
+
+    public function prizes(): HasMany
+    {
+        return $this->hasMany(Prize::class);
     }
 }

@@ -24,14 +24,14 @@
         </div>
 
     </div>
-    <div class="col-span-1"> 
+    <div class="col-span-1">
         @if( isset($artwork) && array_key_exists($field, $artwork) )
             <img src="{{env('DO_CDN_URL'). $artwork[$field] }}" class="img-responsive w-16" />
         @endif
 
         @if( isset($value)  )
-            <img src="{{env('DO_CDN_URL'). $value }}" class="img-responsive w-16" />
+            <img src="{{ asset($value) }}" class="img-responsive w-16" />
         @endif
-        
+
     </div>
 </div>
