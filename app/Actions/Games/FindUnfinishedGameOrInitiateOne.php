@@ -21,6 +21,7 @@ class FindUnfinishedGameOrInitiateOne
                 'campaign_id' => $campaignId
             ])
             ->with('prize')
+            ->whereNull('revealed_at')
             ->first();
 
         if (!empty($game)) {
