@@ -1,17 +1,20 @@
-<div class="w-full">
-    @foreach($actions as $action)
-        <div class="col-span-6 text-right pb-8">
-            <form wire:submit.prevent="{{ $action['method'] }}">
-                <div class="grid grid-cols-4 gap-4 items-start pt-5">
-                    <div class="col-start-2 col-span-3">
-                        <button type="submit" class="submit-button">
-                            {{ $action['label'] }}
-                        </button>
+<div class="w-full flex justify-between">
+    <div></div>
+    <div class="flex">
+        @foreach($actions as $action)
+            <div class="col-span-6 text-right pb-8">
+                <form wire:submit.prevent="{{ $action['method'] }}">
+                    <div class="grid grid-cols-4 gap-4 items-start pt-5">
+                        <div class="col-start-2 col-span-3">
+                            <button type="submit" class="submit-button">
+                                {{ $action['label'] }}
+                            </button>
+                        </div>
                     </div>
-                </div>
-            </form>
-        </div>
-    @endforeach
+                </form>
+            </div>
+        @endforeach
+    </div>
 </div>
 
 
