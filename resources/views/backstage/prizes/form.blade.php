@@ -6,6 +6,12 @@
     'value' => old('name') ?? $prize->name,
 ])
 
+@include('backstage.partials.forms.images', [
+    'field' => 'tile_image',
+    'label' => 'Tile image',
+    'value' => old('tile_image') ?? $prize->tile_image,
+])
+
 @include('backstage.partials.forms.text', [
     'field' => 'description',
     'label' => 'Description',
@@ -17,6 +23,13 @@
     'label' => 'Weight',
     'step' => 1,
     'value' => old('weight') ?? $prize->weight,
+])
+
+@include('backstage.partials.forms.number', [
+    'field' => 'daily_volume',
+    'label' => 'Daily Volume',
+    'step' => 1,
+    'value' => old('daily_volume') ?? $prize->daily_volume,
 ])
 
 @include('backstage.partials.forms.select', [

@@ -2,16 +2,22 @@
 
 namespace App\Models;
 
+use App\Contracts\Models\PrizeContract;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Throwable;
 
-class Prize extends Model
+class Prize extends Model implements PrizeContract
 {
     protected $fillable = [
         'campaign_id',
         'name',
+        'tile_image',
         'description',
         'level',
         'weight',
+        'daily_volume',
         'starts_at',
         'ends_at',
     ];
@@ -24,16 +30,21 @@ class Prize extends Model
     public static function search($query)
     {
         return empty($query) ? static::query()
-            : static::where('name', 'like', '%'.$query.'%');
+            : static::query()->whereRaw('name LIKE %?%', [$query]);
     }
 
-    public function campaign()
+    public function getCacheKey(): string
+    {
+        return $this->attributes['id'] . '-' . date('Y-m-d');
+    }
+
+    public function campaign(): BelongsTo
     {
         return $this->belongsTo(Campaign::class);
     }
 
-    public function prizes()
+    public function games(): HasMany
     {
-        return $this->hasMany(PrizeTable::class, 'prize_id');
+        return $this->hasMany(Game::class);
     }
 }

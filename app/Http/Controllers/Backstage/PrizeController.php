@@ -7,6 +7,7 @@ use App\Http\Requests\Backstage\Prizes\UpdateRequest;
 use App\Models\Prize;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
 
@@ -44,8 +45,10 @@ class PrizeController extends Controller
         // Validation
         $data = $this->validate(request(), [
             'name' => 'required|max:255',
+            'tile_image' => 'sometimes|image|mimes:png,jpg,jpeg|max:2048',
             'description' => 'sometimes',
             'weight' => 'required|numeric|between:0.01,99.99',
+            'daily_volume' => 'nullable|numeric',
             'starts_at' => 'required|date_format:d-m-Y H:i:s',
             'ends_at' => 'required|date_format:d-m-Y H:i:s',
             'level' => 'required|in:low,med,high',
@@ -54,8 +57,16 @@ class PrizeController extends Controller
         // Add the campaign id to the data array.
         $data['campaign_id'] = session('activeCampaign');
 
+        $tileImage = request()->file('tile_image');
+
+        $imageName =  time() . '.' . $tileImage->extension();
+
+        $tileImage->move(public_path("tile_images"), $imageName);
+
+        $data['tile_image'] = "tile_images/$imageName";
+
         // Create the prize
-        $prize = Prize::create($data);
+        Prize::query()->create($data);
 
         // Redirect with success message
         session()->flash('success', 'The prize has been created!');
@@ -77,20 +88,35 @@ class PrizeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateRequest $request, Prize $prize): RedirectResponse
+    public function update(Prize $prize): RedirectResponse
     {
         // Validation
         $data = $this->validate(request(), [
-            'title' => 'required|max:255',
-            'weight' => 'required|numeric|between:0.01,99.99',
-            'startsAt' => 'required|date_format:Y-m-d H:i:s',
-            'endsAt' => 'required|date_format:Y-m-d H:i:s',
+            'name' => 'required|max:255',
+            'tile_image' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
             'description' => 'sometimes',
+            'weight' => 'required|numeric|between:0.01,99.99',
+            'daily_volume' => 'nullable|numeric',
+            'starts_at' => 'required|date_format:d-m-Y H:i:s',
+            'ends_at' => 'required|date_format:d-m-Y H:i:s',
             'level' => 'required|in:low,med,high',
         ]);
 
         // Add the currentPeriod to the data array.
-        $data['campaign_id'] = session('currentCampaign');
+        $data['campaign_id'] = session('activeCampaign');
+
+
+        if (request()->hasFile('tile_image')) {
+            File::delete(public_path($prize->tile_image));
+
+            $tileImage = request()->file('tile_image');
+
+            $imageName =  time() . '.' . $tileImage->extension();
+
+            $tileImage->move(public_path("tile_images"), $imageName);
+
+            $data['tile_image'] = "tile_images/$imageName";
+        }
 
         // Create the prize
         $prize->update($data);
