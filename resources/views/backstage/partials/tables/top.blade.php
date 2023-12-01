@@ -1,13 +1,17 @@
-<div class="col-span-6 text-right pb-8">
-    <form method="POST" wire:submit.prevent="export">
-        <div class="grid grid-cols-4 gap-4 items-start pt-5">
-            <div class="col-start-2 col-span-3">
-                <button type="submit" class="submit-button">
-                    Export csv
-                </button>
-            </div>
+<div class="w-full">
+    @foreach($actions as $action)
+        <div class="col-span-6 text-right pb-8">
+            <form wire:submit.prevent="{{ $action['method'] }}">
+                <div class="grid grid-cols-4 gap-4 items-start pt-5">
+                    <div class="col-start-2 col-span-3">
+                        <button type="submit" class="submit-button">
+                            {{ $action['label'] }}
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
-    </form>
+    @endforeach
 </div>
 
 
