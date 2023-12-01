@@ -7,7 +7,8 @@ use Carbon\Carbon;
 class CheckDailyVolume
 {
     private bool $isValid = true;
-    private ?bool $message = null;
+    private ?string $message = null;
+    private string $cacheKey;
 
     public function execute(string $cacheKey, int $prizeDailyVolume): self
     {
@@ -16,10 +17,12 @@ class CheckDailyVolume
 
             $time = Carbon::tomorrow()->diff(Carbon::now());
 
-            $this->message = trans('prize.daily_volume_exceeded', $time->h, $time->i);
+            $this->message = trans('prize.daily_volume_exceeded', ['hours' => $time->h, 'minutes' => $time->i]);
 
             return $this;
         }
+
+        $this->cacheKey = $cacheKey;
 
         $this->isValid = true;
 
@@ -29,6 +32,11 @@ class CheckDailyVolume
     public function isValid(): bool
     {
         return $this->isValid;
+    }
+
+    public function increaseVolume(): bool
+    {
+        return cache()->increment($this->cacheKey);
     }
 
     public function isInvalid(): bool
