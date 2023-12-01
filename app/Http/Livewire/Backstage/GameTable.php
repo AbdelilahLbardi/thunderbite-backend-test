@@ -52,9 +52,7 @@ class GameTable extends TableComponent
         return view('livewire.backstage.table', [
             'columns' => $columns,
             'resource' => 'games',
-            'rows' => Game::filter()
-                ->join('prizes', 'prizes.id', '=', 'games.prize_id')
-                ->where('prizes.campaign_id', session('activeCampaign'))
+            'rows' => Game::filter($this->account, $this->prizeId, $this->startDate, $this->endDate, session('activeCampaign'))
                 ->orderBy($this->sortField, $this->sortDesc ? 'DESC' : 'ASC')
                 ->paginate($this->perPage),
         ]);
