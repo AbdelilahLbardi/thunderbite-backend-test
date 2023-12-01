@@ -15,7 +15,7 @@ class FindUnfinishedGameOrInitiateOne
     public function execute(string $account, int $campaignId, string $segment = 'low'): Game|Model|null
     {
         $game = Game::query()
-            ->when($segment, fn (Builder $q, $segment) => $q->whereRelation('prize', 'level', $segment))
+            ->whereRelation('prize', 'level', $segment)
             ->where([
                 'account' => $account,
                 'campaign_id' => $campaignId
@@ -24,7 +24,7 @@ class FindUnfinishedGameOrInitiateOne
             ->whereNull('revealed_at')
             ->first();
 
-        if (!empty($game)) {
+        if (! empty($game)) {
             return $game;
         }
 
